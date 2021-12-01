@@ -1,0 +1,74 @@
+非常感谢学长的回复，辛苦了
+添加了"groupCode":"200069"这一项后，那个get请求完成了
+我知道了请求头的重要性；数据不需要全部提交
+postman我刚下载上，我先了解一下
+（提个问题：如何判断爬取网站需要请求头里的哪些东西，都加进去试验吗 ？）
+
+
+但是post请求还是有问题，添加了"groupCode":"200069"可能也不够吗？
+url：https://findcumt.libsp.com/find/unify/search
+然后我把所有我能加上的一些请求头都加上了，也不行
+（有的项好像是字典加字符串？比如下面这一项，我不会加这种的）
+（sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Microsoft Edge";v="96"）
+
+但相比以前，出现了一些不同的报错（很遗憾我没截屏）
+但我进行修改后，这些报错又变成了
+{"success":false,"message":"系统访问中断，请稍后再试！","errCode":90000,"errorCode":null,"data":null}
+我依稀记得下面有这些东西
+443，好像指的是端口号被占？
+Max retries exceeded with url ，
+（似乎是说http链接太多）
+然后我就百度一下
+
+百度告诉我加下面的东西
+requests.adapters.DEFAULT_RETRIES = 15
+# 设置连接活跃状态为False
+s = requests.session()
+s.keep_alive = False
+然后也不太对
+
+百度还说可以设置代理，我试后也不行
+
+关于网络相关的知识可以说是完全没有
+学长有什么推荐的书籍吗，或者还是说在学习语言的过程中慢慢了解
+
+
+下面是post的网址和代码
+https://findcumt.libsp.com/find/unify/search
+
+
+import requests
+
+url1="https://findcumt.libsp.com/find/unify/search"
+
+mine={'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) '
+              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Mobile Safari/537.36 Edg/96.0.1054.34'}
+
+header={
+'User-Agent':'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) '
+              'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Mobile Safari/537.36 Edg/96.0.1054.34',
+"groupCode":"200069",
+'Referer':'https://findcumt.libsp.com/',
+"Content-Length":"514",
+"Host": "findcumt.libsp.com",
+"Origin": "https://findcumt.libsp.com",
+"x-lang": "CHI",
+"Connection": "keep-alive"}
+
+
+data2={"docCode":[],"searchFieldContent":"数学分析","searchField":"keyWord","matchMode":"2","resourceType":[],
+        "subject":[],"discode1":[],"publisher":[],"libCode":[],"locationId":[],"eCollectionIds":[],
+        "curLocationId":[],"campusId":[],"kindNo":[],"collectionName":[],"author":[],"langCode":[],
+        "countryCode":[],"publishBegin":'null',"publishEnd":'null',"coreInclude":[],"ddType":[],"verifyStatus":[],"group":[],"sortField":"relevance",
+        "sortClause":"asc","page":1,"rows":10,"onlyOnShelf":'null',"searchItems":'null',"keyWord":[]}
+
+
+data1={"searchFieldContent":"三体"}
+
+response=requests.post(url1,data=data1,headers=header)
+response2=response.content.decode()
+response3=response.json()
+print(response)
+print(response2)
+print(response3)
+

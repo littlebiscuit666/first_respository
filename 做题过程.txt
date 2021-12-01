@@ -1,0 +1,102 @@
+这是我做的时候的一点发现和疑问
+总的来说，没有获得最终结果
+希望学长帮我参考参考，看看哪里有问题
+表述的还是不清楚
+
+第一题
+设置headers的时候
+用到agent-user，尤其是refer：https://findcumt.libsp.com/
+好像不需要cookies：SameSite=None
+至于是否需要别的参数还没有进行测试
+
+
+其中，bookId，书名，出版社，isbn号使用post到网址
+https://findcumt.libsp.com/find/unify/search
+(用F12发现的)	
+提交的数据形式为
+{"docCode":[null],"searchFieldContent":"三体","searchField":"keyWord","matchMode":"2","resourceType":[],"subject":[],"discode1":[],
+"publisher":[],"libCode":[],"locationId":[],"eCollectionIds":[],"curLocationId":[],"campusId":[],"kindNo":[],"collectionName":[],"author":[],
+"langCode":[],"countryCode":[],"publishBegin":null,"publishEnd":null,"coreInclude":[],"ddType":[],"verifyStatus":[],"group":[],"sortField":"relevance",
+"sortClause":"asc","page":1,"rows":10,"onlyOnShelf":null,"searchItems":null,"keyWord":[]}
+
+但是返回的是{"success":false,"message":"系统访问中断，请稍后再试！","errCode":90000,"errorCode":null,"data":null}
+我怀疑我提交的data的数据格式有问题（有什么判断交付数据格式正确与否的方法吗？）
+需要这么多吗？
+
+
+我还发现：如果使用get提交参数	searchType=01&keyword=三体&matchType=01（参数的含义并不理解）
+即提交到https://findcumt.libsp.com/find/unify/getUnifyReruestBody?searchType=01&keyword=%E4%B8%89%E4%BD%93&matchType=01
+会得到
+上面需要提交的数据
+能不能通过这种方式获取想要提交的数据
+
+
+每进行一次翻页，会生成下面的东西
+search
+searchlist
+getPItemAndOnShelfCountAndDuxiuUrl		我发现这里面有个图片
+但是点击这一项就会去
+https://findcumt.libsp.com/find/unify/getPItemAndOnShelfCountAndDuxiuImageUrl
+然后显示连接不上
+{"success":false,"message":"系统访问中断，请稍后再试！","errCode":90000,"errorCode":null,"data":null}
+（这种情况完全不了解，（这里语言表述很不清楚））
+
+但最终得到的响应还是错的
+<Response [200]>
+{"success":false,"message":"系统访问中断，请稍后再试！","errCode":90000,"errorCode":null,"data":null}
+{'success': False, 'message': '系统访问中断，请稍后再试！', 'errCode': 90000, 'errorCode': None, 'data': None}
+（只是看一下返回的response通过decode与使用json方法获得的区别）
+
+
+其次，馆藏信息通过获得的Id用post到网址
+https://findcumt.libsp.com/find/physical/groupitems
+提交的数据形式为
+{"page":1,"rows":20,"entrance":null,"recordId":"413400","isUnify":true}
+应该是需要刚才获得的recordId的
+
+
+第二题
+用了第一题吗，post时，需要的数据是recordId
+要获取的项目为
+barcode: "C01759934"
+curLocationName: "南湖校区-南湖借阅大厅"
+locationName: "南湖校区-南湖社科图书阅览室Ⅱ"
+processType: "在架"		processType: "借出-应还日期:2021-12-06"
+
+
+关于最终的信息定位的话
+刚开始想用jsonpath，findall之类的但又出现了问题
+后来就将根据F12获取的response放到json.cn解析一下
+老老实实用字典和列表索引了
+
+
+这个是目前用get写出来的，能够获取一部分数据的代码，在
+https://findcumt.libsp.com/#/searchList/bookDetails/413400
+使用F12，在getDetail?recordId=413400项下面找见真实url
+然后做的
+
+import requests
+import json
+url1="https://findcumt.libsp.com/find/searchResultDetail/getDetail?recordId=413400"
+header={
+'User-Agent':'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 '
+             '(KHTML, like Gecko) Chrome/96.0.4664.45 Mobile Safari/537.36 Edg/96.0.1054.29',
+'Referer':'https://findcumt.libsp.com/'}
+response1=requests.get(url1,headers=header)
+response1=response1.content.decode()
+dict_response1=json.loads(response1)
+# print(response1)
+# print(type(dict_response1))
+print(dict_response1)
+print(dict_response1['data']['dCount'])
+print(dict_response1['data']['authorOther'])
+print(dict_response1['data']['magid'])
+print(dict_response1['data']['aCount'])
+print(dict_response1['data']['baseMarcInfoDto'])
+# 这一项出来全是none
+print(dict_response1['data']['bean2List'][0]['fieldVal'])
+for i in dict_response1['data']['bean2List']:
+    print(i)
+
+
+
